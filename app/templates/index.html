@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Teendőlista – CI/CD demo</title>
+<style>
+body{font-family:sans-serif;max-width:480px;margin:40px auto;padding:0 16px}
+li{display:flex;gap:8px;align-items:center;margin:6px 0}
+.done span{text-decoration:line-through;color:#888}
+</style>
+</head>
+<body>
+<h1>Teendőlista</h1>
+<input id="t" placeholder="Új teendő"> <button onclick="add()">Hozzáad</button>
+<ul id="l"></ul>
+<script>
+async function load(){
+  const r = await (await fetch('/api/todos')).json();
+  l.innerHTML = r.map(t => `<li class="${t.done?'done':''}">
+    <input type="checkbox" ${t.done?'checked':''} onchange="tog(${t.id})">
+    <span>${t.title.replace(/</g,'&lt;')}</span>
+    <button onclick="del(${t.id})">x</button></li>`).join('');
+}
+async function add(){
+  if(!t.value.trim()) return;
+  await fetch('/api/todos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t.value})});
+  t.value=''; load();
+}
+async function tog(id){ await fetch('/api/todos/'+id+'/toggle',{method:'PUT'}); load(); }
+async function del(id){ await fetch('/api/todos/'+id,{method:'DELETE'}); load(); }
+load();
+</script>
+</body>
+</html>
