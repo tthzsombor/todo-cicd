@@ -1,34 +1,604 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="hu">
 <head>
-<meta charset="utf-8">
-<title>Teendőlista – CI/CD demo</title>
-<style>
-body{font-family:sans-serif;max-width:480px;margin:40px auto;padding:0 16px}
-li{display:flex;gap:8px;align-items:center;margin:6px 0}
-.done span{text-decoration:line-through;color:#888}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focusly – Task Manager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #0b0c12;
+            --surface: #12141e;
+            --surface-light: #191c29;
+            --border: rgba(255,255,255,0.07);
+            --text: #f2f3fa;
+            --muted: #85899e;
+            --purple: #9271ff;
+            --blue: #5c9dff;
+            --green: #55d6a2;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(ellipse at 15% 0%, rgba(115,80,255,.13), transparent 40%),
+                radial-gradient(ellipse at 90% 80%, rgba(45,130,255,.08), transparent 40%),
+                var(--background);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            padding: 45px 20px;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 55px;
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 25px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: var(--purple);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        .welcome {
+            margin-bottom: 35px;
+        }
+
+        .welcome small {
+            color: var(--purple);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(32px, 5vw, 46px);
+            letter-spacing: -2px;
+            margin-top: 12px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            margin-top: 10px;
+            font-size: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #181a28, #11131c);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 23px;
+            transition: .25s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(146,113,255,.4);
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stat-icon {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            background: rgba(146,113,255,.13);
+            border-radius: 10px;
+            color: var(--purple);
+        }
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .progress-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 25px;
+        }
+
+        .progress-heading {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 17px;
+            font-size: 14px;
+        }
+
+        .progress-heading span:last-child {
+            color: var(--purple);
+            font-weight: 700;
+        }
+
+        .progress-track {
+            height: 7px;
+            border-radius: 20px;
+            background: #292b3a;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, var(--purple), var(--blue));
+            transition: width .4s ease;
+        }
+
+        .todo-panel {
+            background: rgba(18,20,30,.9);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 28px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 23px;
+        }
+
+        .panel-header h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 21px;
+        }
+
+        .task-count {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .input-area input {
+            flex: 1;
+            min-width: 0;
+            background: #1a1c29;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px 17px;
+            color: white;
+            outline: none;
+            font: inherit;
+            transition: .2s;
+        }
+
+        .input-area input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(146,113,255,.1);
+        }
+
+        .input-area input::placeholder {
+            color: #676b80;
+        }
+
+        .add-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 0 23px;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #9271ff, #6954d9);
+            transition: .2s;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(146,113,255,.25);
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #171924;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 16px;
+            transition: .2s;
+            animation: appear .25s ease;
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .todo-item:hover {
+            background: #1c1f2d;
+            border-color: rgba(255,255,255,.13);
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 21px;
+            height: 21px;
+            flex-shrink: 0;
+            border: 1.5px solid #555a70;
+            border-radius: 7px;
+            cursor: pointer;
+            position: relative;
+            transition: .2s;
+        }
+
+        .custom-checkbox:checked {
+            background: var(--purple);
+            border-color: var(--purple);
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            left: 4px;
+            top: 0px;
+        }
+
+        .todo-title {
+            flex: 1;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .done .todo-title {
+            text-decoration: line-through;
+            color: #686d80;
+        }
+
+        .delete-btn {
+            border: none;
+            background: transparent;
+            color: #696e83;
+            font-size: 19px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 7px;
+            transition: .2s;
+        }
+
+        .delete-btn:hover {
+            color: #ff6b81;
+            background: rgba(255,107,129,.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 45px 15px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 35px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #575b6d;
+            font-size: 12px;
+        }
+
+        @media(max-width: 650px) {
+            body { padding: 25px 14px; }
+            header { margin-bottom: 40px; }
+            .stats { gap: 9px; }
+            .stat-card { padding: 14px; }
+            .stat-number { font-size: 26px; }
+            .stat-top { font-size: 11px; }
+            .stat-icon { display: none; }
+            .todo-panel { padding: 19px; }
+            .add-btn { padding: 0 15px; }
+            h1 { letter-spacing: -1px; }
+        }
+    </style>
 </head>
+
 <body>
-<h1>Teendőlista</h1>
-<input id="t" placeholder="Új teendő"> <button onclick="add()">Hozzáad</button>
-<ul id="l"></ul>
+
+<div class="container">
+
+    <header>
+        <div class="logo">focus<span>ly.</span></div>
+        <div class="status">
+            <span class="status-dot"></span>
+            System operational
+        </div>
+    </header>
+
+    <section class="welcome">
+        <small>YOUR PERSONAL WORKSPACE</small>
+        <h1>Fókuszálj a fontosra.</h1>
+        <p>Apró lépésekből születnek a nagy eredmények.</p>
+    </section>
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <div class="stat-top">
+                Összes feladat
+                <div class="stat-icon">▤</div>
+            </div>
+            <div class="stat-number" id="total">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                Folyamatban
+                <div class="stat-icon">◷</div>
+            </div>
+            <div class="stat-number" id="active">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                Teljesítve
+                <div class="stat-icon">✓</div>
+            </div>
+            <div class="stat-number" id="completed">0</div>
+        </div>
+
+    </section>
+
+    <section class="progress-card">
+        <div class="progress-heading">
+            <span>Mai haladás</span>
+            <span id="percentage">0%</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+    </section>
+
+    <section class="todo-panel">
+
+        <div class="panel-header">
+            <h2>Feladataim</h2>
+            <span class="task-count" id="taskCount">0 FELADAT</span>
+        </div>
+
+        <div class="input-area">
+            <input
+                id="todoInput"
+                type="text"
+                placeholder="Mit szeretnél elintézni?"
+                maxlength="200"
+            >
+            <button class="add-btn" id="addButton" onclick="addTodo()">
+                + Hozzáadás
+            </button>
+        </div>
+
+        <div class="todo-list" id="todoList"></div>
+
+    </section>
+
+    <footer>
+        FOCUSLY © 2026 — DESIGNED FOR PRODUCTIVITY
+    </footer>
+
+</div>
+
 <script>
-async function load(){
-  const r = await (await fetch('/api/todos')).json();
-  l.innerHTML = r.map(t => `<li class="${t.done?'done':''}">
-    <input type="checkbox" ${t.done?'checked':''} onchange="tog(${t.id})">
-    <span>${t.title.replace(/</g,'&lt;')}</span>
-    <button onclick="del(${t.id})">x</button></li>`).join('');
-}
-async function add(){
-  if(!t.value.trim()) return;
-  await fetch('/api/todos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t.value})});
-  t.value=''; load();
-}
-async function tog(id){ await fetch('/api/todos/'+id+'/toggle',{method:'PUT'}); load(); }
-async function del(id){ await fetch('/api/todos/'+id,{method:'DELETE'}); load(); }
-load();
+    const input = document.getElementById('todoInput');
+    const list = document.getElementById('todoList');
+
+    async function loadTodos() {
+        try {
+            const response = await fetch('/api/todos');
+            if (!response.ok) throw new Error('Betöltési hiba');
+
+            const todos = await response.json();
+
+            const total = todos.length;
+            const completed = todos.filter(t => t.done).length;
+            const active = total - completed;
+            const percentage = total
+                ? Math.round(completed / total * 100)
+                : 0;
+
+            document.getElementById('total').textContent = total;
+            document.getElementById('active').textContent = active;
+            document.getElementById('completed').textContent = completed;
+            document.getElementById('percentage').textContent = percentage + '%';
+            document.getElementById('progress').style.width = percentage + '%';
+            document.getElementById('taskCount').textContent =
+                total + ' FELADAT';
+
+            if (!total) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">✦</div>
+                        <p>Még nincsenek feladataid.<br>
+                        Adj hozzá egyet, és kezdj bele!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = todos.map(todo => `
+                <div class="todo-item ${todo.done ? 'done' : ''}">
+                    <input
+                        class="custom-checkbox"
+                        type="checkbox"
+                        ${todo.done ? 'checked' : ''}
+                        onchange="toggleTodo(${todo.id})"
+                        aria-label="Feladat teljesítése"
+                    >
+
+                    <span class="todo-title"></span>
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteTodo(${todo.id})"
+                        aria-label="Feladat törlése"
+                    >×</button>
+                </div>
+            `).join('');
+
+            // A feladatok szövegét biztonságosan, HTML-ként való
+            // értelmezés nélkül helyezzük el.
+            list.querySelectorAll('.todo-title').forEach((element, index) => {
+                element.textContent = todos[index].title;
+            });
+
+        } catch (error) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <p>Nem sikerült betölteni a feladatokat.</p>
+                </div>
+            `;
+            console.error(error);
+        }
+    }
+
+    async function addTodo() {
+        const title = input.value.trim();
+
+        if (!title) {
+            input.focus();
+            return;
+        }
+
+        const button = document.getElementById('addButton');
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/api/todos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title })
+            });
+
+            if (!response.ok) throw new Error('Nem sikerült hozzáadni');
+
+            input.value = '';
+            await loadTodos();
+            input.focus();
+
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async function toggleTodo(id) {
+        try {
+            const response = await fetch(`/api/todos/${id}/toggle`, {
+                method: 'PUT'
+            });
+
+            if (!response.ok) throw new Error('Nem sikerült módosítani');
+
+            await loadTodos();
+        } catch (error) {
+            alert(error.message);
+            await loadTodos();
+        }
+    }
+
+    async function deleteTodo(id) {
+        try {
+            const response = await fetch(`/api/todos/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Nem sikerült törölni');
+
+            await loadTodos();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            addTodo();
+        }
+    });
+
+    loadTodos();
 </script>
+
 </body>
 </html>
